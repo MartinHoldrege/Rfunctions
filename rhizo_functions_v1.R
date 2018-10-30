@@ -36,3 +36,64 @@ win2depth <- function(window, angle){
     depth
 }
 # win2depth(70, 37)
+
+
+# NewRoots count ----------------------------------------------------------
+# problem with this function is that returns "0" new roots for a given session 
+# even if result should be NA because that window wasn't sampled. 
+
+NewRoots <- function(df, sessions, output = "freq"){
+  # args:
+  #   df: tibble (generally formed from nest()) of session numbers
+  #       when a given root id occured. dim should be nx1
+  #   sessions: numeric vector of session numbers that were sampled
+  #   output: one of "session", "freq" or "both".  session just outputs the 
+  #       session numbers. freq outputs the frequencies of first roots for the
+  #       session numbers, both outputs both session number and frequencies
+  # returns
+  #   list of number of new roots per session for the given df
+  
+  x <- df[[1]]
+  
+  #    error handling:
+  if (ncol(df) != 1) {
+    stop("df should be a dataframe or tibble with ncol = 1")
+  }
+  if (!is.vector(sessions) | !is.numeric(sessions)){
+    stop ("sessions should be a numeric vector")
+  }
+  check <- x %in% c(sessions, NA)
+  if(sum(!check) > 0){ 
+    stop("sessions input vector does not contain all observed values")}
+  
+  # sessions that didn't have new roots appear
+  not_new <- sessions[!(sessions  %in% x)] %>% 
+    table() %>% 
+    as.data.frame()
+  
+  names(not_new) <- c("session", "freq")
+  not_new$freq <- 0 # no new roots during these sessions
+  
+  if (sum(is.na(x) == 0)){
+    freqs <- table(x) %>% as.data.frame() # frequency of occurence by session
+    names(freqs) <- c("session", "freq")
+    
+    freq_df <- rbind(freqs, not_new) 
+  } else {
+    freq_df <- not_new 
+  }
+  
+  freq_df <- freq_df %>% 
+    mutate(session = as.numeric(as.character(session)),
+           freq = as.numeric(as.character(freq)))
+  
+  if (output == "freq") {
+    out <- freq_df$freq
+  } else if (output == "session"){
+    out <- freq_df$session
+  } else {
+    out <- freq_df
+  }
+  
+  out
+}

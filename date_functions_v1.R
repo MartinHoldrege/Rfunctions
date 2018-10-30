@@ -4,7 +4,7 @@
 
 # edited on: 
 
-# functions that make working with dates and times easier.
+# functions that make working with dates and times easier. 
 
 
 
