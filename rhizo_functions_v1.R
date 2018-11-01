@@ -97,3 +97,62 @@ NewRoots <- function(df, sessions, output = "freq"){
   
   out
 }
+
+
+# change in reponse across years figures ----------------------------------
+
+diff_plot <- function(x, response, ylab, depths, title){
+  # note this is a specific (not very generalizeable function)
+  # args:
+  # x: list of lists, each element of list is a depth with two sub elements
+  #      one of 2018 minus 2016 reponse, one of 2017 minus 2016
+  #response: character, name of response variable
+  # ylab: ylab to be used (character)
+  # depths: vector of depths to loop over
+  # title: title to be used
+  # returns:
+  # list of two ggplot objects. 
+  
+  if (str_detect(response, "ra_prop")){
+    y <- response
+  } else {
+    y <- paste0(response,"_m")
+  }
+  p_list <- list()
+  
+  for (i in seq_along(depths)){
+    p_list[[i]] <- 
+      ggplot(x[[depths[i]]][["df18.16"]], aes_string("trmt", y))+
+      geom_point( ) +
+      geom_smooth(method = "lm") +
+      labs(title = paste("depth =", depths[i], "cm"),
+           y = NULL, x = NULL) +
+      theme_bw()
+  }
+  g1 <- arrangeGrob(grobs = p_list, 
+                    bottom = paste0("Treatment", 
+                                    "\n(Hardware Ranch, minirhizotron data; ", 
+                                    "figure generated ", today(), ")"),
+                    top = paste0(title, "\nChange in response (2018 minus 2016)"),
+                    left = paste("Delta", ylab))
+  
+  p_list <- list()
+  
+  for (i in seq_along(depths)){
+    p_list[[i]] <- 
+      ggplot(x[[depths[i]]][["df17.16"]], aes_string("trmt", y))+
+      geom_point( ) +
+      geom_smooth(method = "lm") +
+      labs(title = paste("depth =", depths[i], "cm"),
+           y = NULL, x = NULL) +
+      theme_bw()
+  }
+  g2 <- arrangeGrob(grobs = p_list, 
+                    bottom = paste0("Treatment", 
+                                    "\n(Hardware Ranch, minirhizotron data; ", 
+                                    "figure generated ", today(), ")"),
+                    top = paste0(title, "\nChange in response (2017 minus 2016)"),
+                    left = paste("Delta", ylab))
+  
+  list(ggpubr::as_ggplot(g1), ggpubr::as_ggplot(g2))
+}
