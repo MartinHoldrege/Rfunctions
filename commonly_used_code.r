@@ -173,3 +173,9 @@ dget()# loading R object
 #### from hands on programming with R
 expand.grid()#every combo of n vectors
 options(stringsAsFactors = F)#global setting, useful if reading in multiple data frame
+
+# non standard eval:
+  quo_name <- quo(var_name) # so gather will evaluate this correctly
+  long_l[[var_name]] <-  hw1a %>% 
+    select(cols_keep, contains(match)) %>% 
+    gather(key = "shelter", value = !!var_name, matches(match))

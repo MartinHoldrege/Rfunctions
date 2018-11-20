@@ -20,3 +20,26 @@ compColMeans <- function(df, colregex){
     filter(., complete.cases(.)) %>% # only keeping rows with no NAs
     colMeans()
 }
+
+
+# is shelter --------------------------------------------------------------
+
+is_shelter <- function(x){
+  # args:
+  #   x-- character vector created created as "key " column in gather, that has
+  #       variable names in it. must contain '_in' or '_out'--ie inside or 
+  #       outside shelter
+  # returns:
+  #   factor vector, of shelter or ambient
+  shelter <- str_detect(x, "_in")
+  ambient <- str_detect(x, "_out")
+  
+  # error handling
+  test <- ifelse((!shelter & !ambient) | (shelter & ambient),
+                 1, 0) 
+  if(sum(test) != 0) stop("x must contain '_in' or '_out'")
+  
+  out <- ifelse(shelter, "shelter", "ambient")
+  out <- factor(out, levels = c("ambient", "shelter"))
+  out
+}
