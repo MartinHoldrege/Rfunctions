@@ -2,8 +2,8 @@
 
 # script started: 11/19/18
 
-# functions for working the CR1000 met station data. (in future should also be 
-# used for other functions when working with misc. meteorological data)
+# functions for working the CR1000 met station data. 
+# other functions when working with misc. meteorological data)
 
 library(tidyverse)
 
@@ -43,3 +43,72 @@ is_shelter <- function(x){
   out <- factor(out, levels = c("ambient", "shelter"))
   out
 }
+
+
+# function for number of days half of precip ------------------------------
+
+precip_half <- function(x){
+  # args:
+  #   x-- vector of daily precip for one year
+  # returns:
+  #   number of wettest days it took to get half of the annual precip
+  #   (this is a metric of precip intensity) 
+  #   trying to do what is described by Pendergrass and Knutti 2018
+  
+  if(sum(!is.na(x)) == 0) return(NA) # if all NA
+  
+  prop_NA <- sum(is.na(x))/length(x) # proportion missing
+  
+  if(prop_NA > 0.3) warning("greater than 30% missing values")
+  
+  total <- sum(x, na.rm = TRUE) # annual precip
+  x2 <- sort(x, decreasing = TRUE)
+  frac <- x2/total # faction of total precip
+  cum <- cumsum(frac) # cumulative fraction of total precip
+  
+  # number of days it took to get over half annual precip:
+  over <- which(cum > .5)[1]
+  under <- over - 1 # num days to get just under half of precip
+  diff <- cum[over] - cum[under]
+  
+  # interpolating between "over" and "under
+  diff.5 <- 0.5 - cum[under] # amount that under (num days) is under half the precip
+  
+  frac.day <- diff.5/diff # fractional day above "under" number of days
+  out <- under + frac.day # number of days took to get half precip
+  
+  out
+}
+
+# amount of precip in n days ------------------------------
+
+precip_n <- function(x, n){
+  # args:
+  #   x-- vector of daily precip for one year (or month etc)
+  #   n-- number of days to use
+  # returns:
+  #   fraction of total precip in the wettest n days of the year
+  
+  if(sum(!is.na(x)) == 0) return(NA) # if all NA
+  
+  total <- sum(x, na.rm = TRUE)
+  prop_NA <- sum(is.na(x))/length(x) # proportion missing
+  
+  if(prop_NA > 0.3) warning("greater than 30% missing values")
+  
+  x2 <- sort(x, decreasing = TRUE)
+  cum <- cumsum(x2) # cumulative precip
+  out <- cum[n]/total
+  out
+}
+# sum or NA ------------------------------------------------------------
+sum_orNA <- function(x){
+  length <- sum(!is.na(x))
+  out <- ifelse(length>0, sum(x, na.rm = TRUE), NA)
+  out
+} # function to deal with issue that sum(x, na.rm = T) equals 0 if vector all NAs
+
+# F to C conversion -------------------------------------------------------
+
+f_to_c <- function(f) (f-32)*5/9 # converting to celsius
+
