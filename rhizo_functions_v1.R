@@ -6,6 +6,7 @@
 
 # functions used with working with minirhizotron data.
 
+library(lubridate)
 
 # root count --------------------------------------------------------------
 
@@ -156,3 +157,47 @@ diff_plot <- function(x, response, ylab, depths, title){
   
   list(ggpubr::as_ggplot(g1), ggpubr::as_ggplot(g2))
 }
+
+
+# rate of n new roots -------------------------------------------------------
+
+# n_new <- new_r$n_new
+# session <- new_r$session
+# all_dates <- dates
+
+root_rate <- function(n_new, session, all_dates){
+  # args 
+  #   n_new--vector of the number of new roots since previous date
+  #   session--vector of the session number of measurment made 
+  #   all_dates--vector of all dates measured (so can determine the previous date),
+  #       formatted as a lookup table of the format 'datex = "yyyy-mm-dd"', where x 
+  #       is the sesson number
+  # returns:
+  #   number of new roots[generaly per cm2] per 7 days (since previous measurement)
+  
+  prev_date <- paste0("date", session - 1)
+  prev_date <- all_dates[prev_date] %>% 
+    ymd()
+  current_date <- paste0("date", session)
+  current_date <- all_dates[current_date] %>% 
+    ymd()
+  
+  diff <- (current_date - prev_date) # number of days since previous measurement
+  if(attr(diff, "units") != "days") {
+    stop("function not producing difftime object with units in days") 
+  }
+  diff <- as.numeric(diff)
+  diff.wk <- diff/7 # using weeks instead of days
+  
+  out <- n_new/diff.wk
+  out
+}
+
+
+# lme4 model summary ------------------------------------------------------
+
+lme_smry <- function(model,...){
+  print(plot(model,...))
+  return(summary(model))
+}
+

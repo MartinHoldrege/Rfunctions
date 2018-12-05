@@ -47,9 +47,11 @@ is_shelter <- function(x){
 
 # function for number of days half of precip ------------------------------
 
-precip_half <- function(x){
+precip_half <- function(x, threshold = 0){
   # args:
   #   x-- vector of daily precip for one year
+  #   threshold--discard values under a given threshold (good if worried about 
+  #   sensor sensitivity of old data)
   # returns:
   #   number of wettest days it took to get half of the annual precip
   #   (this is a metric of precip intensity) 
@@ -60,6 +62,8 @@ precip_half <- function(x){
   prop_NA <- sum(is.na(x))/length(x) # proportion missing
   
   if(prop_NA > 0.3) warning("greater than 30% missing values")
+  
+  x <- x[x >= threshold]
   
   total <- sum(x, na.rm = TRUE) # annual precip
   x2 <- sort(x, decreasing = TRUE)
@@ -82,15 +86,17 @@ precip_half <- function(x){
 
 # amount of precip in n days ------------------------------
 
-precip_n <- function(x, n){
+precip_n <- function(x, n, threshold = 0){
   # args:
   #   x-- vector of daily precip for one year (or month etc)
   #   n-- number of days to use
+  #   threshold--discard values under a given threshold (good if worried about 
+  #   sensor sensitivity of old data)
   # returns:
   #   fraction of total precip in the wettest n days of the year
   
   if(sum(!is.na(x)) == 0) return(NA) # if all NA
-  
+  x <- x[x >= threshold]
   total <- sum(x, na.rm = TRUE)
   prop_NA <- sum(is.na(x))/length(x) # proportion missing
   

@@ -72,7 +72,7 @@ plt.mod <- function(model, ...){
     old.par <- par(mfrow=c(2,2))
     plot(model, ...)
     par(old.par)
-}#model diagnostic plots
+}#model diagnostic plots, from Will Pearse
 
 
 #~~~~~~ display model results on a graph
