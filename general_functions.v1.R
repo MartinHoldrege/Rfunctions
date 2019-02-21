@@ -159,7 +159,6 @@ unscale <- function(z, attr){
     x
 }
 
-
 # re-scale ----------------------------------------------------------------
 
 # takes input of scaled unscaled vector (x) and the attributes of some other 
@@ -171,4 +170,17 @@ rescale <- function(x, attr){
     xbar <- attr$`scaled:center`
     z <-  (x-xbar)/s
     z
+}
+
+
+# logit -------------------------------------------------------------------
+
+logit <- function(x, offset = 0) {
+  # args:
+  #   x --numeric vector
+  #   offset--numeric offset, consider adding if x contains 0s
+  # returns:
+  #   logit of x
+  x1 <- x + offset
+  log(x1/(1-x1))
 }

@@ -9,18 +9,35 @@ library(tidyverse)
 
 # col means of complete cases ---------------------------------------------
 
-compColMeans <- function(df, colregex){
+compColMeans <- function(df, colregex, median = FALSE){
   # args:
   #   df--data frame
   #   colregex--regular expression that matches the column names to select
+  #   median- logical, whether to also display median
   # Returns:
   #    means of columns selected only including the rows with complete.cases
-  df %>% 
+  #   or means and medians
+  df2 <- df %>% 
     select(matches(colregex)) %>% 
     filter(., complete.cases(.)) %>% # only keeping rows with no NAs
     colMeans()
+  if (median) {
+    mean <- df %>% 
+      select(matches(colregex)) %>% 
+      filter(., complete.cases(.)) %>% # only keeping rows with no NAs
+      summarise_all(funs(mean))
+    
+    median <-df %>% 
+      select(matches(colregex)) %>% 
+      filter(., complete.cases(.)) %>% # only keeping rows with no NAs
+      summarise_all(funs(median))
+    
+    df2 <- bind_rows(mean, median)
+    df2$fun <- c("mean", "median")
+    
+  }
+  df2
 }
-
 
 # is shelter --------------------------------------------------------------
 

@@ -95,7 +95,6 @@ NewRoots <- function(df, sessions, output = "freq"){
   } else {
     out <- freq_df
   }
-  
   out
 }
 
@@ -165,7 +164,7 @@ diff_plot <- function(x, response, ylab, depths, title){
 # session <- new_r$session
 # all_dates <- dates
 
-root_rate <- function(n_new, session, all_dates){
+root_rate <- function(n_new, session, all_dates, return_weeks = FALSE){
   # args 
   #   n_new--vector of the number of new roots since previous date
   #   session--vector of the session number of measurment made 
@@ -174,6 +173,7 @@ root_rate <- function(n_new, session, all_dates){
   #       is the sesson number
   # returns:
   #   number of new roots[generaly per cm2] per 7 days (since previous measurement)
+  #   vector of number of weeks since previous measurement if return_weeks = T
   
   prev_date <- paste0("date", session - 1)
   prev_date <- all_dates[prev_date] %>% 
@@ -188,7 +188,7 @@ root_rate <- function(n_new, session, all_dates){
   }
   diff <- as.numeric(diff)
   diff.wk <- diff/7 # using weeks instead of days
-  
+  if(return_weeks) return(diff.wk) # return just diff.wk if asked for
   out <- n_new/diff.wk
   out
 }
@@ -196,8 +196,72 @@ root_rate <- function(n_new, session, all_dates){
 
 # lme4 model summary ------------------------------------------------------
 
-lme_smry <- function(model,...){
-  print(plot(model,...))
+lme_smry <- function(model, disp = FALSE, plot = FALSE, ...){
+  # args:
+  #   model--lme4 model object
+  #   disp--display dispersion for negative binomial or poisson model?
+  if (plot){
+    print(plot(model,...))
+  }
+
+  if (disp){
+    blmeco::dispersion_glmer(model) %>% 
+      round(2) %>% 
+      paste("dispersion:", .) %>% 
+      print()
+  }
   return(summary(model))
 }
 
+
+# calc z score and factors ----------------------------------------------------
+
+to_z_factor <- function(df, factors = c("plot", "year"), 
+                        z = c("trmt", "bins10")){
+  # args:
+  #   df--dataframe
+  #   factors--variables to convert to factors
+  #   z --variables to take z scores of
+  # returns: df
+  
+  df %>% 
+    mutate_at(vars(factors),
+              funs(as.factor)) %>% 
+    mutate_at(vars(z),
+              funs(sjmisc::std))# std used b/ scale() creates matrix
+  # and doesn't work with sjt.lmer
+}
+
+
+
+# plot of residual vs predictors ------------------------------------------
+
+gg_pred_resids <- function(model, data, title = NULL, depth_sq = FALSE) {
+  # args:
+  #     model--model object
+  #     data--data used to fit model (must contain bins10 and trmt)
+  #     depth_sq--logical, also graph residual vs bins10^2*trmt and bins10^2
+  # returns:
+  #     plot of deviance residuals vs predictor variables (bins10, trmt and
+  #        bins10*trmt)
+  
+  pred <- pred_resids(model, data) # calc resids/predicted vals
+  
+  # calc interactions
+  if(!depth_sq){ # no squared depth
+    df <- pred %>% 
+      mutate(`trmt:bins10` = bins10*trmt) # calculating interactions
+  } else { # yes squared depth
+    df <- pred %>% 
+      mutate(bins10 = bins10^2,
+             `trmt:bins10` = bins10*trmt,
+             `trmt:bins10^2` = (bins10^2)*trmt) # calculating interactions
+  }
+  
+  plot <- df %>% 
+    gather(key = "variable", value = "value", matches("trmt|bins10")) %>% 
+    ggplot(aes(value, r.deviance)) +
+    g_pred_resid() +
+    labs(title = title)
+  return(plot)
+}
