@@ -97,7 +97,7 @@ pred_resids <- function(model, data) {
 # residuals vs prediction by factor ---------------------------------------
 
 rvpred_byfactor <- function(model, data, ran, fixed = NULL, 
-                       x = "p.link", y = "r.deviance") {
+                       x = "p.link", y = "r.deviance", caption = NULL) {
   # args:
   #     model object (created for glmer others may be ok)
   #     data--df used to fit the model
@@ -106,6 +106,7 @@ rvpred_byfactor <- function(model, data, ran, fixed = NULL,
   #       needs to be categorical not continuous
   #     x--p.link or p.response (predicted value on response or link scale)
   #     y--r.deviance or r.pearson (type of residual)
+  #     caption --plot caption
   # returns:
   #     plots of residual vs predicted split faceted by ran/fixed effects. 
   
@@ -118,7 +119,8 @@ rvpred_byfactor <- function(model, data, ran, fixed = NULL,
     theme_classic() +
     geom_hline(yintercept = 0, linetype = "dashed") +
     labs(x = paste0("fitted value", " (", x,")"),
-         y = paste0("residual", " (", y,")"))
+         y = paste0("residual", " (", y,")"),
+         caption = caption)
   # residual vs prediction by levels of random effects
   ran_plot <- NULL
   if (!is.null(ran)){

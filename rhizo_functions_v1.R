@@ -236,11 +236,13 @@ to_z_factor <- function(df, factors = c("plot", "year"),
 
 # plot of residual vs predictors ------------------------------------------
 
-gg_pred_resids <- function(model, data, title = NULL, depth_sq = FALSE) {
+gg_pred_resids <- function(model, data, title = NULL, depth_sq = FALSE, 
+                           caption = NULL) {
   # args:
   #     model--model object
   #     data--data used to fit model (must contain bins10 and trmt)
   #     depth_sq--logical, also graph residual vs bins10^2*trmt and bins10^2
+  #     caption--plot caption
   # returns:
   #     plot of deviance residuals vs predictor variables (bins10, trmt and
   #        bins10*trmt)
@@ -261,7 +263,38 @@ gg_pred_resids <- function(model, data, title = NULL, depth_sq = FALSE) {
   plot <- df %>% 
     gather(key = "variable", value = "value", matches("trmt|bins10")) %>% 
     ggplot(aes(value, r.deviance)) +
-    g_pred_resid() +
-    labs(title = title)
+    g_pred_resid() + # defined in model call
+    labs(title = title,
+         caption = caption)
   return(plot)
 }
+
+
+# specific repeated summarize() --------------------------------------------
+
+smrz_m_se <- function(df, med = TRUE) {
+  # args:
+  #   grouped df with specific columns
+  #   med--also calculate median?
+  # returns:
+  #   df with summarized mean, std error and optionally median
+
+  # functions to summarize by:
+  if(med){
+    FUNS <-  funs(m =mean(.,na.rm = TRUE), 
+                  se = std.error(.,na.rm = TRUE),
+                  med = median(.,na.rm = TRUE))
+  } else{
+    FUNS <-  funs(m =mean(.,na.rm = TRUE), 
+                  se = std.error(.,na.rm = TRUE))
+  }
+
+  out <- df %>% 
+    summarize_at(.vars = vars(diam_m, length_m, ra_m, rv_m, n_root_m, ra_prop, 
+                              n_win, n_new_m),
+                 .funs = FUNS) %>% 
+    ungroup()
+  
+  return(out)
+}
+
