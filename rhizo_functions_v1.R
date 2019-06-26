@@ -236,12 +236,14 @@ to_z_factor <- function(df, factors = c("plot", "year"),
 
 # plot of residual vs predictors ------------------------------------------
 
-gg_pred_resids <- function(model, data, title = NULL, depth_sq = FALSE, 
+gg_pred_resids <- function(model, data, title = NULL, depth_sq = FALSE,
+                           pred_match = "trmt|bins10",
                            caption = NULL) {
   # args:
   #     model--model object
   #     data--data used to fit model (must contain bins10 and trmt)
   #     depth_sq--logical, also graph residual vs bins10^2*trmt and bins10^2
+  #     pred_math --regex of matching variables to facet in figure
   #     caption--plot caption
   # returns:
   #     plot of deviance residuals vs predictor variables (bins10, trmt and
@@ -252,16 +254,21 @@ gg_pred_resids <- function(model, data, title = NULL, depth_sq = FALSE,
   # calc interactions
   if(!depth_sq){ # no squared depth
     df <- pred %>% 
-      mutate(`trmt:bins10` = bins10*trmt) # calculating interactions
+      mutate(`trmt:bins10` = .data$bins10*.data$trmt) # calculating interactions
   } else { # yes squared depth
     df <- pred %>% 
       mutate(bins10 = bins10^2,
-             `trmt:bins10` = bins10*trmt,
-             `trmt:bins10^2` = (bins10^2)*trmt) # calculating interactions
+             `trmt:bins10` = .data$bins10*.data$trmt,
+             `trmt:bins10^2` = (.data$bins10^2)*.data$trmt) # calculating interactions
   }
   
+  if("zyear" %in% names(df)){
+    df <- df %>% 
+      mutate(`trmt:zyear` = .data$trmt*.data$zyear)
+  }
+
   plot <- df %>% 
-    gather(key = "variable", value = "value", matches("trmt|bins10")) %>% 
+    gather(key = "variable", value = "value", matches(pred_match)) %>% 
     ggplot(aes(value, r.deviance)) +
     g_pred_resid() + # defined in model call
     labs(title = title,

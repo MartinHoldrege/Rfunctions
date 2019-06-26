@@ -402,4 +402,38 @@ interp_row_means <- function(x, y1a, y1b,...){
      rowMeans(out,...)
 }
 
-   
+
+# summarise over doy interval ---------------------------------------------
+
+summarise_doy <- function(df, ..., new_name, eval_name, doy_end, window = 1) {
+  # args:
+  #   df--dataframe with doy.h column
+  #   ... names of variables to group by
+  #   new_name--name of summary variable
+  #   eval_name--name of variable taking mean of
+  #   doy_end -- last doy in the window of interested (non inclusive)
+  #   window--width of doy window to select
+  # note: all variable names should be unquoted
+  # returns:
+  #   df--with means of eval_name varariable over specified doy interval
+  doy_start <- doy_end - window
+  
+  group_vars <- enquos(...)
+  eval_name = enquo(eval_name)
+  new_name = enquo(new_name)
+
+  out <- df %>% 
+    filter(.data$doy.h >= doy_start & .data$doy.h < doy_end) %>% 
+    group_by(!!! group_vars) %>% 
+    summarize(!! new_name := mean(!! eval_name, na.rm = TRUE)) 
+  
+  out
+}   
+
+
+
+
+
+
+
+

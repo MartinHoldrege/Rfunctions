@@ -135,3 +135,72 @@ sum_orNA <- function(x){
 
 f_to_c <- function(f) (f-32)*5/9 # converting to celsius
 
+
+
+# parse met station data --------------------------------------------------
+
+parse_met <- function(x){
+  x %>% 
+    mutate(DATE = ymd(DATE),
+           month = month(DATE, label = TRUE),
+           year = year(DATE),
+           TMAX = f_to_c(TMAX), # convert to celsius
+           TMIN = f_to_c(TMIN),
+           PRCP = PRCP*25.4, # in to mm conversion
+           TAVG = (TMAX + TMIN) / 2
+    ) %>% 
+    select(-STATION, NAME)
+}
+
+filter_pull <- function(df, filter_var, pull_var = "year", cutoff = 20) {
+  # args:
+  #   df--a dataframe
+  #   threshold_var--name of variable to filter by
+  #   pull_var--name of variable to return
+  #   cutoff--threshold above which threshold_var should be
+  # returns:
+  #   vector 
+  stopifnot(is.data.frame(df),
+            is.character(filter_var),
+            is.character(pull_var),
+            is.numeric(cutoff))
+  out <- df[df[[filter_var]] > cutoff, ][[pull_var]]
+  out
+  
+}
+
+
+# calculate snow water equivelent from met data ---------------------------
+
+swe <- function(df, prcp_var, indicator_var, indicator_type){
+  # args:
+  #   df--data frame of weather data
+  #   prcp_var -- name of the precipitation column (e.g. tipping bucket data)
+  #   indicator_var -- variable name for that variable that indicates if the 
+  #       prcp is snow or rain (either temp data or snow data)
+  #   indicator_type -- string either "temp" or "snow", 
+  # returns:
+  #   snow water equivelent (i.e. values of the prcp var when it was probably snowing)
+  #       ie when it was either snowing or below 0 temp
+  
+  col_names <- names(df)
+  
+  stopifnot(all(indicator_type %in% c("temp", "snow")),
+            all(c(prcp_var, indicator_var) %in% col_names) # valid col names?
+  )
+  
+  prcp <- df[[prcp_var]]
+  indicator <- df[[indicator_var]]
+  
+  either_na <- is.na(prcp) | is.na(indicator) # if NAs in input data return NA
+  
+  # was it snowing that day?
+  is_snow <- if(indicator_type == "snow"){ # snow data
+    ifelse(indicator > 0, TRUE, FALSE)
+  } else { # temp data
+    ifelse(indicator < 0, TRUE, FALSE)
+  }
+  out <- ifelse(either_na, NA,
+                ifelse(is_snow, prcp, 0))
+  out
+}

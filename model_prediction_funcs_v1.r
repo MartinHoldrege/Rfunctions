@@ -170,4 +170,24 @@ predict_new <- function(model, df_scale, df_org,...) {
   df_org
 }
 
+# log transform data ---------------------------------------------------------
 
+log_mult <- function(x, mult = 0.5) {
+  # args:
+  #   x--numeric vector
+  #   mult--constant (rule of thumb is according to SD is 0.5)
+  # returns:
+  #   log of x + mult X min non-zero value. for when x contains 0. 
+  xna <- x[!is.na(x)]
+  if(min(xna) < 0) stop("x can't be negative")
+  
+  min_non0 <- min(xna[xna > 0]) # minimum non zero value
+  min_mult <- mult*min_non0 # min value multipled by constant
+  out <- log(x + min_mult)
+  out
+}
+
+# testing:
+# x <- c(0, NA, .5, 100, 2)
+# log_mult(x)
+# log(x + 0.25)
