@@ -68,3 +68,27 @@ if (FALSE) {
    c2mm_HWRanch(c(-1, 2.5, 3)) # shouldn't run
    trmts_HWRanch(1:14, convert2mm = TRUE)
 }
+
+
+# c2mm_HWRanch applied to dfs ------------------------------------------------
+
+c2mm_df_HWRanch <- function(df) {
+    # args:
+    #   df--dataframe containing trmt variable
+    # returns:
+    #   df with trmt converted from C to mm
+    stopifnot(
+        is.data.frame(df),
+        "trmt" %in% names(df)
+    )
+    df$trmt <- c2mm_HWRanch(df$trmt)
+    
+    df
+}
+
+#test
+if (FALSE) {
+    df <- data.frame(trmt = trmts_HWRanch(1:14), plot = 1:14)
+    df
+    c2mm_df_HWRanch(df)
+}
