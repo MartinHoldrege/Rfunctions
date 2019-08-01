@@ -23,7 +23,7 @@ mean_abdiff <- function(x, date = NULL,...){
 
 is_shelter <- function(trmt){
   # args: 
-  #   trmt--vector (usually factor) of treatment types
+  #   trmt--vector (usually factor) of treatment levels
   # returns:
   #   character string, of whether that trmt has a shelter or is ambient
   trmt <- as.character(trmt)
