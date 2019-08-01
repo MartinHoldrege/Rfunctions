@@ -8,7 +8,7 @@
 library(tidyverse)
 
 # col means of complete cases ---------------------------------------------
-
+# not really used anymore (kept just in case), compColMeansGroup now used
 compColMeans <- function(df, colregex, median = FALSE){
   # args:
   #   df--data frame
@@ -17,6 +17,8 @@ compColMeans <- function(df, colregex, median = FALSE){
   # Returns:
   #    means of columns selected only including the rows with complete.cases
   #   or means and medians
+  
+
   df2 <- df %>% 
     select(matches(colregex)) %>% 
     filter(., complete.cases(.)) %>% # only keeping rows with no NAs
@@ -37,6 +39,40 @@ compColMeans <- function(df, colregex, median = FALSE){
     
   }
   df2
+}
+
+# col means by a group variable -------------------------------------------
+
+# groups_by plot, didn't figure out the non-standard eval to make this selectable
+compColMeansGroup <- function(df, colregex, median = FALSE){
+  # args:
+  #   df--data frame
+  #   colregex--regular expression that matches the column names to select
+  #   median- logical, whether to also display median
+  # Returns:
+  #    means of columns selected only including the rows with complete.cases
+  #   or means and medians
+  
+  df2 <- df %>% 
+    select(plot, matches(colregex)) %>% 
+    filter(., complete.cases(.)) %>%  # only keeping rows with no NAs
+    group_by(plot)
+  
+  mean <- df2 %>% 
+    summarise_all(list(~mean(.))) %>% 
+    mutate(fun = "mean")
+    
+  if (median) {
+
+    median <-df2 %>% 
+      summarise_all(list(~median(.))) %>% 
+      mutate(fun = "median")
+    
+    out <- bind_rows(mean, median)
+    return(out)
+
+  }
+  mean
 }
 
 # is shelter --------------------------------------------------------------
@@ -152,6 +188,10 @@ parse_met <- function(x){
     select(-STATION, NAME)
 }
 
+
+# -------------------------------------------------------------------------
+
+
 filter_pull <- function(df, filter_var, pull_var = "year", cutoff = 20) {
   # args:
   #   df--a dataframe
@@ -203,4 +243,164 @@ swe <- function(df, prcp_var, indicator_var, indicator_type){
   out <- ifelse(either_na, NA,
                 ifelse(is_snow, prcp, 0))
   out
+}
+
+
+
+# NR-lite wind speed correction -------------------------------------------
+
+Rn_cor <- function(Rn.obs, ws) {
+  # args:
+  #   Rn--net radiation (W/m^2), measured by nr-lite
+  #   ws--wind speed (m/s) 
+  # returns:
+  #   Rn corrected (as per Campbell nr-lite manual)
+  
+  
+  stopifnot(
+    is.numeric(Rn.obs),
+    is.numeric(ws),
+    all(ws >= 0 | is.na(ws))
+  )
+  
+  if(max(ws, na.rm = TRUE) > 22) {
+    warning("wind speed unrealistically high (> 22 m/s (50 mph)")
+  }
+  
+  Rn_windy <- Rn.obs*(1 + 0.021286*(ws-5)) # wind correction
+  
+  # makes no correction if ws missing
+  Rn.cor <- ifelse(ws < 5 | is.na(ws), Rn.obs, Rn_windy)
+  Rn.cor
+}
+
+# Rn_cor(1:10, c(1:9, NA))
+
+
+# time series correction --------------------------------------------------
+
+
+timeseries_cor_sd <- function(x, time, ref_x, ref_time, sd_num = 4, min_ref_n = 10) {
+  # args:
+  #   x--numeric vector of the time series vector to be cleaned
+  #   time--numeric vector that bins x, e.g. (month, doy, week, etc)
+  #   ref_x--reference time series vector (could be same as x)
+  #   ref-time--numeric vector that bins ref_x, (should contain same values as time)
+  #   sd_num--number of sds above the ref_x mean for a bin above which a value will be replace with NA
+  #   min_ref_n--gives warning if ref_x has less than that number of non NA values for a given time bin
+  # returns:
+  #   numberic vector, outliers replaced with NA
+  
+  stopifnot(
+    length(x) == length(time),
+    length(ref_x) == length(ref_time),
+    all(!is.na(time)), # can't have missing time
+    # test all input vectors numeric:
+    all(map_lgl(list(x, time, ref_x, ref_time), is.numeric)),
+    length(sd_num) == 1,
+    sd_num >= 0,
+    all(unique(time) %in% unique(ref_time)) # ref_time must have all bins
+  )
+  
+  time_bins <- unique(time)
+  
+  x_out <- x
+  for (bin in time_bins){
+    ref_x_sub <- ref_x[ref_time == bin] 
+    
+    # enough ref values?
+    n_ref <- sum(!is.na(ref_x_sub))
+    if(n_ref < min_ref_n){
+      warning(paste("only", n_ref, 
+                    "non NA reference values available for ref_time ==", bin))
+    }
+    ref_mean <- mean(ref_x_sub, na.rm = TRUE)
+    ref_sd <- sd(ref_x_sub, na.rm = TRUE)
+    
+    upper <- ref_mean + sd_num*ref_sd
+    lower <- ref_mean - sd_num*ref_sd
+    
+    x_out[time == bin] <- ifelse(x[time == bin] > upper | x[time == bin] < lower,
+                                 NA, x[time == bin])
+    
+  }
+  
+  num_outlier <- sum(is.na(x_out)) - sum(is.na(x))
+  message(paste(num_outlier, "outliers were replaced with NA"))
+  
+  x_out
+}
+
+# example use of the function:
+if (FALSE) {
+  # make some data
+  x <- c(rnorm(100, 0, 1), rnorm(100, 5, 1))
+  ref_x <- x
+  # add noise
+  x[c(20, 30:35, 150:155)] <- x[c(20, 30:35, 150:155)] + 10
+
+  time <- rep(c(1, 2), each = 100)
+  
+  ref_time <- time
+
+  x_cor <- timeseries_cor_sd(x, time, ref_x, ref_time)
+  
+  par(mfrow = c(1, 2))
+  plot(x, ylim = range(x))
+  plot(x_cor, ylim = range(x))
+} 
+
+
+# add plot_name column ----------------------------------------------------
+
+add_plot_name <- function(df) {
+  # args:
+  #  df--data frame with a plot column
+  # returns:
+  #  df with new col plot_name (e.g. "plot 4")
+  stopifnot(
+    is.data.frame(df),
+    "plot" %in% names(df),
+    is.numeric(df$plot)
+  )
+  
+  out <- df %>% 
+    mutate(plot_name = paste("plot", plot))
+  out
+}
+
+
+# min/max better handles all NAs ----------------------------------------------
+
+
+fun_na <- function(f) {
+  # args:
+  #  f--a function
+  # returns:
+  #   returns a function,  returns outcome of f (na.rm option), unless all NAs, then NA (instead of Inf)
+  
+  fun <- function(x, na.rm = FALSE){
+    stopifnot(is.numeric(x))
+    x2 <- x[!is.na(x)]
+    out <- if(length(x2) < 1) {
+      NA
+    } else {
+      f(x, na.rm = na.rm)
+    }
+    out
+  }
+
+  fun
+}
+
+max_na <- fun_na(max)
+
+min_na <- fun_na(min)
+
+if (FALSE) {
+  max_na(NA_real_)
+  max_na(1:10)
+  max_na(c(1:10, NA))
+  max_na(c(1:10, NA), na.rm = TRUE)
+  min_na(1:10)
 }
