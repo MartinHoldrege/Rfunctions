@@ -36,12 +36,12 @@ c2mm_HWRanch <- function(x) {
     # args:
     #   x--vector of treatment levels (old deg C labeling)
     # returns:
-    #   vector of treatment levels converted to mm precip
+    #   vector of treatment levels converted to mm precip (numbers from AK)
 
     x_char <- as.character(x)
     
-    lookup_nocc <- c("-1" = 1, "0" = 1.5, "1" = 2, "2" = 3, "3" = 4, "5" = 8, 
-                    "10" = 18)
+    lookup_nocc <- c("-1" = 3.9, "0" = 4.6, "1" = 7.7, "2" = 10, "3" = 12, "5" = 17, 
+                    "10" = 31)
     
     if(is.numeric(x)){
         stopifnot(all(x %in% c(-1, 0, 1, 2, 3, 5, 10)))
@@ -64,7 +64,22 @@ c2mm_HWRanch <- function(x) {
 if (FALSE) {
    x <- trmts_HWRanch(1:14) 
    c2mm_HWRanch(x)
-   c2mm_HWRanch(c(-1, 0, 1, 2, 3, 5, 10))
+   trmts <- c(-1, 0, 1, 2, 3, 5, 10)
+   c2mm_HWRanch(trmts)
+   
+   # ~~~~~~
+   scale_c <- scale(trmts)
+   scale_mm <- scale(c2mm_HWRanch(trmts))
+   # these are the calculated (from tipping bucket) mean event sizes
+   scale_mm_mean <- scale(c(4.76, 5.31, 6.18, 7.21, 8.38, 10.82, 19.42))
+   # when scaled, the different ways of representing the treatments
+   # follow nearly a 1:1 relationship
+   par(mfrow = c(2, 2))
+   plot(scale_mm ~ scale_c); abline(a = 0, b = 1)
+   plot(scale_mm_mean ~ scale_c); abline(a = 0, b = 1)
+   plot(scale_mm_mean ~ scale_mm); abline(a = 0, b = 1)
+   # ~~~~~~~~
+   
    c2mm_HWRanch(c(-1, 2.5, 3)) # shouldn't run
    trmts_HWRanch(1:14, convert2mm = TRUE)
 }
