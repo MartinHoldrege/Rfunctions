@@ -3,24 +3,25 @@
 # Various figure parameters (colors etc) that might be useful across projects
 
 
-
+source("~/Analysis/Rfunctions/assign_trmts_functions.r")
 # legend labels -----------------------------------------------------------
 
+library(dplyr)
+legend_lab <- trmts_HWRanch(c(7, 4, 3, 11, 5, 12, 14), dump_label = TRUE) 
+  # as.character() %>% 
+  # as.numeric() %>% 
+  # round(0) %>% 
+  # paste("mm")
 
-legend_lab <- expression(1~mm~(-1~degree*C),
-                         control~(0~degree*C),
-                         2~mm~(1~degree*C),
-                         3~mm~(2~degree*C),
-                         4~mm~(3~degree*C),
-                         8~mm~(5~degree*C),
-                         18~mm~(10~degree*C))
-
+# legend_lab[2] <- "control"
+names(legend_lab) <- names(trmts_HWRanch(c(7, 4, 3, 11, 5, 12, 14), convert2mm = TRUE))
 
 # colors ------------------------------------------------------------------
 
 # excluding cc trmt
 
 # colors
-pal <- rev(RColorBrewer::brewer.pal(9, "RdYlBu"))
-pal <- pal[-c(1, 4)]
+pal <- rev(RColorBrewer::brewer.pal(11, "RdYlBu"))
+pal <- pal[-c(1:2, 4:5)]
 pal[2] <- "black"
+# length(pal)

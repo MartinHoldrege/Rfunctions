@@ -14,34 +14,48 @@ trmts_clark <- function(x){
  }
 
 #creating vector of the trmts based on vector of plot numbers at Hardware
-trmts_HWRanch <- function(x, convert2mm = FALSE){
+trmts_HWRanch <- function(x, convert2mm = FALSE, dump_label = FALSE){
     stopifnot(is.numeric(x),
               all(x %in% 1:14))
     lookup <- c("1"="cc", "2"=0,"3"=1,"4"=0,"5"=3,"6"="cc","7"=-1,"8"=3,
-                             "9"=0,"10"="cc","11"="2","12"=5,"13"=3,"14"=10)
+                             "9"=0,"10"="cc","11"=2,"12"=5,"13"=3,"14"=10)
     lookup <- factor(lookup, ordered =TRUE,levels=c("cc","-1","0","1","2","3","5","10"))
     x <- as.character(x)
     out <- unname(lookup[x])
-    if (convert2mm) {
-        out <- c2mm_HWRanch(out)
+    if (convert2mm | dump_label) {
+        out <- c2mm_HWRanch(out, dump_label = dump_label)
     }
     out
 }
 
-
+trmts_HWRanch(1:14, dump_label = TRUE)
 # convert trmt levels from deg C to mm ------------------------------------
 
 
-c2mm_HWRanch <- function(x) {
+c2mm_HWRanch <- function(x, dump_label = FALSE) {
     # args:
     #   x--vector of treatment levels (old deg C labeling)
+    #   return labels of the dump size instead
     # returns:
-    #   vector of treatment levels converted to mm precip (numbers from AK)
+    #   vector of treatment levels converted to mm precip (mean event sizes)
+    #       or trmt label (dump size, mm)
+    
+    stopifnot(
+        is.logical(dump_label)
+    )
 
     x_char <- as.character(x)
     
-    lookup_nocc <- c("-1" = 3.9, "0" = 4.6, "1" = 7.7, "2" = 10, "3" = 12, "5" = 17, 
-                    "10" = 31)
+    if (!dump_label) {
+        # mean event sizes (from tipping bucket applied to non-winter months)
+        lookup_nocc <- c("-1" = 4.8, "0" = 5.3, "1" = 6.2, "2" = 7.2, "3" = 8.4, "5" = 10.8, 
+                         "10" = 19.4)
+    } else {
+        lookup_nocc <- c("-1" = "1 mm", "0" = 'control', "1" = "2 mm", 
+                         "2" = "3 mm", "3" = "4 mm", "5" = "8 mm", 
+                         "10" = "18 mm")
+    }
+
     
     if(is.numeric(x)){
         stopifnot(all(x %in% c(-1, 0, 1, 2, 3, 5, 10)))
@@ -64,9 +78,10 @@ c2mm_HWRanch <- function(x) {
 if (FALSE) {
    x <- trmts_HWRanch(1:14) 
    c2mm_HWRanch(x)
+   c2mm_HWRanch(x, dump_label = TRUE)
    trmts <- c(-1, 0, 1, 2, 3, 5, 10)
    c2mm_HWRanch(trmts)
-   
+   c2mm_HWRanch(trmts, dump_label = TRUE)
    # ~~~~~~
    scale_c <- scale(trmts)
    scale_mm <- scale(c2mm_HWRanch(trmts))
