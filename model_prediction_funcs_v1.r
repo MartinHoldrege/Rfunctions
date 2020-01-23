@@ -191,3 +191,33 @@ log_mult <- function(x, mult = 0.5) {
 # x <- c(0, NA, .5, 100, 2)
 # log_mult(x)
 # log(x + 0.25)
+
+
+# ictab to tibble ---------------------------------------------------------
+
+ICtab2df <- function(table, mod_lookup) {
+  # args:
+  #   table: object from ICtab
+  #   named lookup vector to replace row.names with better model names
+  # returns:
+  #   tibble version of ictab table, with delta loglik re-computed also
+  stopifnot(
+    class(table) == "ICtab",
+    length(attr(table, "row.names")) == length(mod_lookup)
+  )
+  table2 <- table
+  class(table2) <- "list"
+  table3 <- table2 %>% 
+    as_tibble() %>% 
+    mutate(mod = attr(table, "row.names"),
+           # dloglike makes more sense as difference from best
+           dLogLik = max(logLik)-logLik) 
+  
+  table4 <- table3 %>% 
+    mutate(Model = mod_lookup[mod],
+           Weight = ifelse(weight < 0.001,
+                           "<0.001",
+                           weight)) %>% 
+    dplyr::select(Model, everything(), -mod, -weight)
+  table4
+}
