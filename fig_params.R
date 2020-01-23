@@ -7,8 +7,8 @@ source("~/Analysis/Rfunctions/assign_trmts_functions.r")
 # legend labels -----------------------------------------------------------
 
 library(dplyr)
-legend_lab <- trmts_HWRanch(c(7, 4, 3, 11, 5, 12, 14), dump_label = TRUE) 
-  # as.character() %>% 
+legend_lab <- trmts_HWRanch(c(7, 4, 3, 11, 5, 12, 14), dump_label = TRUE) %>% 
+  as.character()
   # as.numeric() %>% 
   # round(0) %>% 
   # paste("mm")
@@ -25,3 +25,5 @@ pal <- rev(RColorBrewer::brewer.pal(11, "RdYlBu"))
 pal <- pal[-c(1:2, 4:5)]
 pal[2] <- "black"
 # length(pal)
+
+
