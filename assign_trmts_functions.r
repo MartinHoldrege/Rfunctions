@@ -28,7 +28,7 @@ trmts_HWRanch <- function(x, convert2mm = FALSE, dump_label = FALSE){
     out
 }
 
-trmts_HWRanch(1:14, dump_label = TRUE)
+
 # convert trmt levels from deg C to mm ------------------------------------
 
 
@@ -51,7 +51,7 @@ c2mm_HWRanch <- function(x, dump_label = FALSE) {
         lookup_nocc <- c("-1" = 4.8, "0" = 5.3, "1" = 6.2, "2" = 7.2, "3" = 8.4, "5" = 10.8, 
                          "10" = 19.4)
     } else {
-        lookup_nocc <- c("-1" = "1 mm", "0" = 'control', "1" = "2 mm", 
+        lookup_nocc <- c("-1" = "1 mm", "0" = 'Control', "1" = "2 mm", 
                          "2" = "3 mm", "3" = "4 mm", "5" = "8 mm", 
                          "10" = "18 mm")
     }
@@ -121,4 +121,31 @@ if (FALSE) {
     df <- data.frame(trmt = trmts_HWRanch(1:14), plot = 1:14)
     df
     c2mm_df_HWRanch(df)
+}
+
+
+# hi lo intensity hardware ------------------------------------------------
+
+lohi_HWRanch <- function(x) {
+    # args:
+    #   x--vector of plot numbers
+    # returns:
+    #   factor of low or high intensity (trmt)
+    stopifnot(
+        is.numeric(x),
+        all(x %in% 1:14)
+    )
+    
+    trmt <- as.character(trmts_HWRanch(x))
+    trmt <- ifelse(trmt == "cc", "0", trmt)
+    trmt <- as.numeric(as.character(trmt))
+    trmt_lohi = cut(trmt, c(-1.5, 2.5, 10.5),
+                    labels = c("low intensity", "high intensity"))
+    trmt_lohi
+}
+
+if (FALSE) {
+    lohi_HWRanch(1:14)
+    lohi_HWRanch(c(1, 2, 3, 4, 6, 7, 9, 10, 11))
+    lohi_HWRanch(c(3, 5, 8, 12, 13, 14))
 }
