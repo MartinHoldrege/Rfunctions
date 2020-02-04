@@ -102,9 +102,11 @@ incr_pos <- function(x, date = NULL, rate = FALSE, obs_month = 365/12){
     out
 }
 
-incr_pos(as.numeric(rep(NA, 4)), 4:1)
-incr_pos(1:60, rate = TRUE)
-
+# test
+if (FALSE){
+  incr_pos(as.numeric(rep(NA, 4)), 4:1)
+  incr_pos(1:60, rate = TRUE)
+}
 # sum positive increment for hourly data paw----------------------------------
 # more specific function than above. 
 
