@@ -129,32 +129,50 @@ if (FALSE) {
 }
 
 
-# hi lo intensity hardware ------------------------------------------------
+# lohi function factory ---------------------------------------------------
 
-lohi_HWRanch <- function(x) {
+lohi_factory <- function(f) {
+  # f--either trmts_clark or trmts_hwranch
+  new_fun <- function(x) {
     # args:
     #   x--vector of plot numbers
     # returns:
     #   factor of low or high intensity (trmt)
     stopifnot(
-        is.numeric(x),
-        all(x %in% 1:14)
+      is.numeric(x),
+      all(x %in% 1:14)
     )
     
-    trmt <- as.character(trmts_HWRanch(x))
+    trmt <- as.character(f(x)) # convert to trmt (deg C)
     trmt <- ifelse(trmt == "cc", "0", trmt)
     trmt <- as.numeric(as.character(trmt))
     trmt_lohi = cut(trmt, c(-1.5, 2.5, 10.5),
                     labels = c("low intensity", "high intensity"))
     trmt_lohi
+  }
+  new_fun
 }
+
+# hi lo intensity hardware ------------------------------------------------
+
+
+lohi_HWRanch <- lohi_factory(trmts_HWRanch)
 
 if (FALSE) {
     lohi_HWRanch(1:14)
     lohi_HWRanch(c(1, 2, 3, 4, 6, 7, 9, 10, 11))
-    lohi_HWRanch(c(3, 5, 8, 12, 13, 14))
+    lohi_HWRanch(c(5, 8, 12, 13, 14))
 }
 
+
+# hi lo intensity clark  ------------------------------------------------
+
+
+lohi_clark <- lohi_factory(trmts_clark)
+
+if (FALSE) {
+  lohi_clark(1:14)
+}
 
 # c 2 mm trmts clark ------------------------------------------------------
 

@@ -1,4 +1,4 @@
-# martin holdrege
+  # martin holdrege
 
 # edited on: 6/9/18 
 
@@ -135,6 +135,7 @@ tipping_bucket <- function(x, trt_size) {
   
   dumped
 }
+
 
 # test
 if (FALSE) {

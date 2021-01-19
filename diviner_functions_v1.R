@@ -162,3 +162,62 @@ incr_paw_hr <- function(vwc, wp, date.time, wp_threshold = -3, rate = TRUE,
 # vwc <- hr_incr1$vwc
 # wp <- hr_incr1$wp
 # date.time <- hr_incr1$date.time
+
+
+# super specific funs -----------------------------------------------------
+# for clarkston
+                                   
+summarize_vwc <- function(df) {
+  # df--grouped dataframe
+  stopifnot(
+    is.data.frame(df),
+    "vwc" %in% names(df)
+    
+  )
+  summarize(df, 
+            vwc_se = plotrix::std.error(vwc, na.rm = TRUE),
+            vwc = mean(vwc, na.rm = TRUE)) %>% 
+    ungroup()
+}
+
+summarize_delta_vwc <- function(df) {
+  # df--grouped dataframe
+  stopifnot(
+    is.data.frame(df),
+    "delta_vwc" %in% names(df)
+    
+  )
+
+  df %>% 
+    summarize(delta_vwc_se = plotrix::std.error(delta_vwc, na.rm = TRUE),
+              delta_vwc = mean(delta_vwc, na.rm = TRUE)) %>% 
+    ungroup()
+
+}
+
+summarize_incr <- function(df) {
+  # df--grouped dataframe
+  stopifnot(
+    is.data.frame(df),
+    "incr_pos" %in% names(df)
+    
+  )
+  summarize(df, 
+            incr_pos_se = plotrix::std.error(incr_pos, na.rm = TRUE),
+            incr_pos = mean(incr_pos, na.rm = TRUE)) %>% 
+    ungroup()
+}
+
+crop_yrs <- function(df) {
+  # return df with only  years during which crop occured
+  stopifnot(
+    is.data.frame(df),
+    "year" %in% names(df)
+    
+  )
+  crop_yrs <- c(2017, 2019) 
+  
+  out <- filter(df, year %in% crop_yrs)
+  out
+}
+

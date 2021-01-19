@@ -195,9 +195,10 @@ log_mult <- function(x, mult = 0.5) {
 
 # ictab to tibble ---------------------------------------------------------
 
+
 ICtab2df <- function(table, mod_lookup) {
   # args:
-  #   table: object from ICtab
+  #   table: object from bbmle::ICtab() function
   #   named lookup vector to replace row.names with better model names
   # returns:
   #   tibble version of ictab table, with delta loglik re-computed also

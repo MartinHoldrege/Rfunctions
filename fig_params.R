@@ -27,3 +27,5 @@ pal[2] <- "black"
 # length(pal)
 
 
+pal_17_19 <- c("#d8b365", "#5ab4ac") # pallette for seperating years (clarkston)
+

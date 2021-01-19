@@ -57,6 +57,87 @@ wp_flint <- function(x, wp0 = -0.056, m = 0.45, n = 1){
 } #formulat for calculating matric water potential (Mpa) from flint et al 2002
 
 
+# calc  tdry diff --------------------------------------------------------------
+
+wp_tdry_diff <- function(Tdry, deltaT, Twet, Ti, target) {
+  # args:
+  #   Tdry--deltaT of absolutely dry soil (if measured)
+  #   deltaT--observed deltaT (scalar)
+  #   Twet -- deltaT of absolutely saturated soil
+  #   Ti--starting temp
+  #   target--target wp 
+  # returns:
+  #   difference between calculated and target wp for that given deltaT and Tdry
+  #     for use in optim dry functon
+  
+  # function not vectorized, needs to return a scalar to use with optim
+  stopifnot(
+    length(deltaT) == 1,
+    length(Ti) == 1
+  )
+  tnorm <- deltaT_norm(deltaT, Tdry, Twet, Ti) # calc tnorm
+  tnorm_s <- deltaT_norm_s(tnorm) # scale
+  wp <- wp_flint(tnorm_s) # calculate water potential 
+  out <- abs(wp - target) # that which we want to minimize
+  # trick the optimizer (ie if NA then not an optimal value)
+  # method of optimizer i'm using can't deal with NAs 
+  if(is.na(out)) {
+    return(100) 
+  }
+  out
+}
+
+
+# calc optimized tdry -----------------------------------------------------
+
+
+optim_tdry <- function(max_deltaT, Twet, Ti, target, just_par = TRUE) {
+  # args:
+  #   max_deltaT --max deltaT observed (that which want to set wp to target)
+  #   Twet--temperature change in wettest soil
+  #   Ti -- mean start temp (or max if want to be conservative)
+  #   target --target water potential for max observed deltaT (Mpa)
+  #   just_par --logical return just estimated Tdry or full optim output
+  # returns:
+  #   Tdry value that makes max_deltaT have target wp 
+  l1_double <- function(x) length(x) == 1 & is.double(x)
+  stopifnot(
+    l1_double(max_deltaT),
+    l1_double(Twet),
+    l1_double(Ti),
+    l1_double(target)
+  )
+  Tdry <- max_deltaT + 0.5 # starting value for optimizer of Tdry
+  out <- optim(par = Tdry, fn = wp_tdry_diff, deltaT = max_deltaT, Twet = Twet, Ti = Ti, 
+        target = target,
+        method = "Brent", 
+        #reasonable min/max to try:
+        lower = 0, upper = 10)
+  
+  if (just_par) {
+    return(out$par)
+  } 
+  out
+}
+
+# test
+if (FALSE) {
+  target = -100
+  deltaT =  2.841778
+  #Tdry = 3.313
+  Twet = 0.654
+  Ti = 3.616333
+  out <- optim_tdry(max_deltaT = deltaT, Twet = Twet, Ti = Ti, 
+             target = target, FALSE)
+  out # new estimated best Tdry
+  Tdry <- out$par
+  deltaT_norm(deltaT = , Tdry = Tdry,Twet = Twet, Ti = Ti) %>% 
+    deltaT_norm_s() %>% 
+    wp_flint()
+}
+
+
+
 # function testing --------------------------------------------------------
 
 
@@ -104,4 +185,39 @@ vwc_hw <- function(x, depth){
 #     print(vwc_hw(-0.033, depths[i]))
 #     print(vwc_hw(-1.5, depths[i]))
 # }
+
+
+# clark vwc from wp --------------------------------------------------------
+
+vwc_clark <- function(x, depth){
+  x <- -1*x
+  vwc <- ifelse(depth < 15, 
+                log(x/3916.6)/(-43.89),
+                ifelse(depth >= 15 & depth < 30, log(x/6587.2)/(-48.64),
+                       log(x/16451)/(-53.69)))
+  vwc
+}
+
+
+# summarize vwc and wp ----------------------------------------------------
+
+summarize_vwc_wp <- function(df) {
+  # args:
+  #   df--data frame (grouped)
+  # returns:
+  #   summaries of the wp and vwc columns
+  stopifnot(
+    is.data.frame(df),
+    c("vwc", "wp", "date") %in% names(df) 
+  )
+  
+  summarise(df,
+            vwc_m = mean(vwc),
+            vwc_med = median(vwc),
+            vwc_df = sd(vwc),
+            wp_m = mean(wp),
+            wp_med = median(wp),
+            wp_df = sd(wp),
+            vwc_incr = incr_pos(vwc, date, rate = TRUE))
+}
 
