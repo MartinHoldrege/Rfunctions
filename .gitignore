@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+crash-handler-permission
+crash-handler.conf
