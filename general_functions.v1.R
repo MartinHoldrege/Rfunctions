@@ -135,7 +135,8 @@ date_hr <- function(date, hr){
 
 #  no cc  --------------------------------------------------------------------
 
-# function that discards the "cc" plots from a data frame and converts
+# function that discards the "cc" (control-control, ie,
+# shelter-control) plots from a data frame and converts
 # trmt back to numeric
 
 nocc <- function(df, trmt = "trmt"){

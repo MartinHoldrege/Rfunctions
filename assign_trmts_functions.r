@@ -2,8 +2,19 @@
 #functions for assigning the correct treatments to plot numbers at Hardware Ranch
 #and clarkston.
 
+
+# trmts_clark -------------------------------------------------------------
+
+
 #creating vector of the trmts based on vector of plot numbers at clarkston
 trmts_clark <- function(x, convert2mm = FALSE, dump_label = FALSE){
+    # args:
+    #  x--plot number
+    #  convert2mm --logical whether to output treatment as mean event size (mm)
+    #   dump_label--logical, whether to instead output the treatment label 
+    #     (i.e. minimum event size)
+    # returns:
+    #   vector with length of x
     stopifnot(is.numeric(x),
               all(x %in% 1:14))
     lookup <- c("1"=3, "2"=1,"3"=3,"4"=0,"5"=0,"6"="cc","7"=-1,"8"=2,
@@ -176,8 +187,10 @@ if (FALSE) {
 
 # c 2 mm trmts clark ------------------------------------------------------
 
-# convert trmt levels from deg C to mm ------------------------------------
-
+# convert trmt levels from deg C to mm 
+# treatments labels can be in deg C, ie the temperature increase
+# the precip intensity trmt corresponds to.
+# this function converts that into mm (ie event size)
 c2mm_clark <- function(x, dump_label = FALSE) {
     # args:
     #   x--vector of treatment levels (old deg C labeling)
