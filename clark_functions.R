@@ -206,3 +206,22 @@ nocc <- function(df, trmt = "trmt"){
   df[[trmt]] <- as.numeric(as.character(df[[trmt]]))
   df
 }
+
+
+# vwc from wp --------------------------------------------------------
+# this function is based on site specific soil water curves, and converts
+# wp to vwc
+
+vwc_clark <- function(x, depth){
+  # args:
+  #   x --numeric vector (water potential)
+  #   depth --numeric vector (depth, in cm)
+  # returns:
+  #   volumetric water content
+  x <- -1*x
+  vwc <- ifelse(depth < 15, 
+                log(x/3916.6)/(-43.89),
+                ifelse(depth >= 15 & depth < 30, log(x/6587.2)/(-48.64),
+                       log(x/16451)/(-53.69)))
+  vwc
+}

@@ -188,8 +188,14 @@ vwc_hw <- function(x, depth){
 
 
 # clark vwc from wp --------------------------------------------------------
+# this function is based on site specific soil water curves
 
 vwc_clark <- function(x, depth){
+  # args:
+  #   x --numeric vector (water potential)
+  #   depth --numeric vector (depth, in cm)
+  # returns:
+  #   volumetric water content
   x <- -1*x
   vwc <- ifelse(depth < 15, 
                 log(x/3916.6)/(-43.89),
