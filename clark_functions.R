@@ -13,7 +13,7 @@
 pal <- rev(RColorBrewer::brewer.pal(11, "RdYlBu"))
 pal <- pal[-c(1:2, 4:5)]
 pal[2] <- "black"
-
+pal_17_19 <- c("#d8b365", "#5ab4ac") # pallette for separating years (clarkston)
 
 # base for gamm figures (lai, ndvi etc)
 
