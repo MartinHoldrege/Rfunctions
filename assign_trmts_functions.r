@@ -207,8 +207,9 @@ c2mm_clark <- function(x, dump_label = FALSE) {
     
     if (!dump_label) {
         # mean event sizes (from tipping bucket applied to non-winter months)
-        lookup_nocc <- c("-1" = 4.8, "0" = 5.3, "1" = 6.2, "2" = 7.2, "3" = 8.4, "5" = 10.8, 
-                         "10" = 19.4)
+        # during experiment time only
+        lookup_nocc <- c("-1" = 4.9, "0" = 5.6, "1" = 6.9, "2" = 8.3, "3" = 9.1,
+                         "5" = 11.5,  "10" = 20.2)
     } else {
         lookup_nocc <- c("-1" = "1 mm", "0" = 'Control', "1" = "2 mm", 
                          "2" = "3 mm", "3" = "4 mm", "5" = "8 mm", 

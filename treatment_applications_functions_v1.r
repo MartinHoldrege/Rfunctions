@@ -108,7 +108,7 @@ trmt_events <- function(x, trt_size){
 # trmt_events(x, 6)
 
 # calculate amount applied each day --------------------------------------
-
+# amount applied by trmt given observed ambient precip
 
 tipping_bucket <- function(x, trt_size) {
   # args:
@@ -161,7 +161,8 @@ tipping_bucket_neg1 <- function(x, interval, dump_size = 1, trt_size = 0.56) {
   #     (when given natural precip)
   # returns:
   #   vector of length x with the amount of precip applied each day 
-  #   based on additions at given interval
+  #   based on additions at given interval. This is the expecte timeseries
+  #    of the '1 mm' treatment (i.e. treatment meant to reflect -1C temp change)
   
   stopifnot(
     is.numeric(interval),
@@ -197,6 +198,7 @@ tipping_bucket_neg1 <- function(x, interval, dump_size = 1, trt_size = 0.56) {
 
 
 add_extra_dumps <- function(x, dump_size, interval) {
+  # This function is used inside tipping_bucket_neg1
   # args:
   #   x--numeric vector (precip data)
   #   dump_size--how big should the additional events be
