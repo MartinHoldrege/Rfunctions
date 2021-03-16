@@ -178,7 +178,8 @@ if (FALSE) {
 
 # hi lo intensity clark  ------------------------------------------------
 
-
+# grouping plots into two categories, low precip intensity and high precip
+# intensity
 lohi_clark <- lohi_factory(trmts_clark)
 
 if (FALSE) {

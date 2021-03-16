@@ -195,6 +195,37 @@ trmts_clark <- function(x, convert2mm = FALSE, dump_label = FALSE){
   out
 }
 
+# lohi function factory ---------------------------------------------------
+
+# function factory used below
+lohi_factory <- function(f) {
+  # f--either trmts_clark or trmts_hwranch
+  new_fun <- function(x) {
+    # args:
+    #   x--vector of plot numbers
+    # returns:
+    #   factor of low or high intensity (trmt)
+    stopifnot(
+      is.numeric(x),
+      all(x %in% 1:14)
+    )
+    
+    trmt <- as.character(f(x)) # convert to trmt (deg C)
+    trmt <- ifelse(trmt == "cc", "0", trmt)
+    trmt <- as.numeric(as.character(trmt))
+    trmt_lohi = cut(trmt, c(-1.5, 2.5, 10.5),
+                    labels = c("low intensity", "high intensity"))
+    trmt_lohi
+  }
+  new_fun
+}
+
+# hi lo intensity clark  ------------------------------------------------
+
+# grouping plots into two categories, low precip intensity and high precip
+# intensity
+lohi_clark <- lohi_factory(trmts_clark)
+
 #  no cc  --------------------------------------------------------------------
 
 # function that discards the "cc" (control-control, ie,
@@ -358,6 +389,21 @@ if (FALSE) {
   x <- c(3, 0, 2, 0, 0, 0, 2, 2, 2, 2 )
   add_extra_dumps(x, dump_size = 1, interval = 4)
 }
+
+
+# sum_na ------------------------------------------------------------------
+
+sum_na <- function(x){
+  length <-  length(x)
+  nas <- sum(is.na(x))
+  if (nas == length) {
+    out <-  NA
+  } else {
+    out <- sum(x,na.rm = T)
+  }
+  out
+} # if entire vector is NAs returns NA, else it returns sum with na.rm=T
+#ordinary sum() returns 0 if all NAs w/ na.rm = T
 
 # helper functions --------------------------------------------------------
 # these functions used within the other functions defined here
