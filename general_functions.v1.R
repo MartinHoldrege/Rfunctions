@@ -52,6 +52,23 @@ mydiff <- function(x){
   c=c(NA,d)#d is one shorter than x, adding NA so vector is same length as x
   return(c)
 }
+
+# not absolute difference
+diff_na <- function(x) {
+  d <- diff(x, lag = 1)
+  out <- c(NA, d)
+  out
+}
+
+# take the cumulutive sum even if the sequence
+# includes NAs, 
+cumsum_na <- function(x) {
+  x_0 <- x
+  x_0[is.na(x)] <- 0
+  out <- cumsum(x_0)
+  out[is.na(x)] <- NA
+  out
+}
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 my_bins <- function(x,bins,bin_adjust = 0){
     #bins is vector of bin cuttoffs
